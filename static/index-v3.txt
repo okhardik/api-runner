@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>API Runner</title>
+  <style>
+    :root {
+      --bg: #0f1117; --surface: #1a1d27; --surface2: #232733; --border: #2e3345;
+      --text: #e1e4ed; --text2: #8b90a0; --accent: #6c5ce7; --green: #00b894;
+      --red: #ff6b6b; --yellow: #ffc048; --radius: 10px; --mono: 'Fira Code', monospace;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: sans-serif; background: var(--bg); color: var(--text); padding: 32px 20px; line-height: 1.5; }
+    .app { max-width: 1100px; margin: 0 auto; }
+    header { margin-bottom: 30px; display: flex; align-items: center; gap: 15px; }
+    .logo { background: var(--accent); width: 35px; height: 35px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+    
+    .step { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; margin-bottom: 20px; }
+    .step-h { display: flex; align-items: center; gap: 12px; margin-bottom: 15px; font-weight: bold; }
+    .step-n { background: var(--accent); width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; }
+    
+    textarea { width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-family: var(--mono); font-size: 13px; padding: 15px; min-height: 140px; resize: vertical; outline: none; }
+    .var-badge { background: rgba(108, 92, 231, 0.15); color: #a29bfe; padding: 4px 10px; border-radius: 15px; font-size: 11px; margin: 5px 5px 0 0; display: inline-block; font-family: var(--mono); }
+    
+    .upload-zone { border: 2px dashed var(--border); padding: 40px; text-align: center; cursor: pointer; border-radius: 8px; color: var(--text2); transition: 0.2s; }
+    .upload-zone:hover { border-color: var(--accent); background: #ffffff05; }
+    
+    .data-table-wrap { max-height: 250px; overflow: auto; margin-top: 15px; border: 1px solid var(--border); border-radius: 8px; }
+    table { width: 100%; border-collapse: collapse; font-size: 12px; font-family: var(--mono); }
+    th { background: var(--surface2); position: sticky; top: 0; padding: 10px; text-align: left; color: var(--text2); }
+    td { padding: 8px 10px; border-top: 1px solid var(--border); white-space: nowrap; max-width: 200px; overflow: hidden; text-overflow: ellipsis; }
+
+    .controls { display: flex; gap: 15px; align-items: flex-end; flex-wrap: wrap; }
+    .field { display: flex; flex-direction: column; gap: 5px; font-size: 12px; color: var(--text2); }
+    .field input { background: var(--bg); border: 1px solid var(--border); color: white; padding: 8px; border-radius: 5px; outline: none; width: 80px; }
+
+    .btn { padding: 10px 20px; border-radius: 6px; border: none; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; font-size: 14px; }
+    .btn:disabled { opacity: 0.3; cursor: not-allowed; }
+    .btn-primary { background: var(--accent); color: white; }
+    .btn-secondary { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+    .btn-danger { background: rgba(255,107,107,0.1); color: var(--red); border: 1px solid rgba(255,107,107,0.3); }
+
+    /* Results */
+    .progress-bar-wrap { height: 6px; background: var(--surface2); border-radius: 3px; overflow: hidden; margin: 20px 0; }
+    .progress-bar { height: 100%; background: var(--accent); width: 0%; transition: width 0.3s; }
+    .results-list { display: flex; flex-direction: column; gap: 10px; max-height: 600px; overflow-y: auto; padding-right: 5px; }
+    .result-item { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; }
+    .result-header { padding: 12px 16px; display: flex; align-items: center; cursor: pointer; gap: 15px; font-size: 13px; user-select: none; }
+    .result-status { font-weight: bold; font-family: var(--mono); padding: 2px 8px; border-radius: 4px; font-size: 11px; }
+    .s2xx { color: var(--green); background: rgba(0,184,148,0.1); }
+    .s4xx, .s5xx, .err { color: var(--red); background: rgba(255,107,107,0.1); }
+    .result-body { display: none; padding: 15px; background: rgba(0,0,0,0.2); border-top: 1px solid var(--border); }
+    .result-item.open .result-body { display: block; }
+    .result-item.open .chevron { transform: rotate(90deg); }
+    .chevron { transition: 0.2s; color: var(--text2); font-size: 10px; }
+
+    pre { 
+        background: #000; padding: 12px; border-radius: 6px; font-family: var(--mono); font-size: 12px;
+        white-space: pre-wrap; word-break: break-all; overflow-x: auto; max-height: 400px; line-height: 1.5; border: 1px solid var(--border);
+    }
+    .section-label { font-size: 10px; color: var(--text2); text-transform: uppercase; margin: 12px 0 5px; font-weight: bold; letter-spacing: 1px; }
+    .section-label:first-child { margin-top: 0; }
+
+    /* Modal */
+    .modal { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:100; align-items:center; justify-content:center; padding:20px; }
+    .modal-content { background:var(--surface); border:1px solid var(--border); border-radius:12px; width:100%; max-width:800px; max-height:80vh; overflow-y:auto; padding:25px; }
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="logo">⚡</div>
+    <div>
+      <h2 style="font-size:18px">API Runner</h2>
+      <p style="font-size:12px; color:var(--text2)">Batch request automation tool</p>
+    </div>
+  </header>
+
+  <div class="step">
+    <div class="step-h"><div class="step-n">1</div>cURL Command</div>
+    <textarea id="curl-input" placeholder="Paste curl here... use {{variable}} for dynamic data"></textarea>
+    <div id="var-badges"></div>
+  </div>
+
+  <div class="step">
+    <div class="step-h"><div class="step-n">2</div>Data Source (CSV/JSON)</div>
+    <div id="upload-zone" class="upload-zone">Click or Drop CSV/JSON file here</div>
+    <input type="file" id="file-input" class="hidden" accept=".csv,.json" />
+    <div id="data-table-wrap" class="data-table-wrap hidden"></div>
+  </div>
+
+  <div class="step">
+    <div class="step-h"><div class="step-n">3</div>Execution Config</div>
+    <div class="controls">
+      <div class="field"><label>Delay (ms)</label><input type="number" id="delay" value="200"></div>
+      <div class="field"><label>Timeout (s)</label><input type="number" id="timeout" value="30"></div>
+      <div class="field"><label>Start Row</label><input type="number" id="start-at" value="0"></div>
+      <div class="field"><label>Limit</label><input type="number" id="limit" value="0" placeholder="0=all"></div>
+      <div style="flex:1"></div>
+      <button class="btn btn-secondary" id="preview-btn" disabled>Preview</button>
+      <button class="btn btn-primary" id="run-btn" disabled>▶ Run Collection</button>
+    </div>
+  </div>
+
+  <div id="results-step" class="step hidden">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px">
+      <div class="step-h" style="margin:0"><div class="step-n">4</div>Results</div>
+      <div style="display:flex; gap:10px">
+        <button class="btn btn-secondary" id="export-btn" style="padding:5px 12px; font-size:12px">Export JSON</button>
+        <button class="btn btn-danger hidden" id="abort-btn" style="padding:5px 12px; font-size:12px">Abort</button>
+      </div>
+    </div>
+    <div id="stats" style="font-size:13px; color:var(--text2); margin-bottom:5px"></div>
+    <div class="progress-bar-wrap"><div id="progress-bar" class="progress-bar"></div></div>
+    <div id="results-list" class="results-list"></div>
+  </div>
+</div>
+
+<!-- Modal -->
+<div id="modal" class="modal">
+  <div class="modal-content">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px">
+      <h3>Dry Run Preview (First 5 rows)</h3>
+      <button onclick="$('#modal').style.display='none'" style="background:none; border:none; color:white; cursor:pointer; font-size:20px">&times;</button>
+    </div>
+    <div id="preview-content"></div>
+  </div>
+</div>
+
+<script>
+const $ = s => document.querySelector(s);
+let dataRows = [];
+let currentRunId = null;
+
+// Logic
+$('#curl-input').oninput = async () => {
+  const res = await fetch('/api/parse-curl', {
+    method: 'POST', headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({curl: $('#curl-input').value})
+  });
+  const data = await res.json();
+  $('#var-badges').innerHTML = (data.variables || []).map(v => `<span class="var-badge">{{${v}}}</span>`).join('');
+  checkReady();
+};
+
+$('#upload-zone').onclick = () => $('#file-input').click();
+$('#file-input').onchange = async (e) => {
+  const file = e.target.files[0];
+  if(!file) return;
+  const text = await file.text();
+  const res = await fetch('/api/parse-data', {
+    method: 'POST', headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({content: text, filename: file.name})
+  });
+  const data = await res.json();
+  dataRows = data.rows;
+  $('#upload-zone').innerText = `File: ${file.name} (${data.count} rows)`;
+  renderTable(data.columns, data.rows.slice(0, 5));
+  checkReady();
+};
+
+function renderTable(cols, rows) {
+  let html = `<table><thead><tr>${cols.map(c=>`<th>${c}</th>`).join('')}</tr></thead><tbody>`;
+  rows.forEach(r => { html += `<tr>${cols.map(c=>`<td>${r[c]||''}</td>`).join('')}</tr>`; });
+  html += `</tbody></table>`;
+  $('#data-table-wrap').innerHTML = html;
+  $('#data-table-wrap').classList.remove('hidden');
+}
+
+function checkReady() {
+  const ready = $('#curl-input').value && dataRows.length;
+  $('#run-btn').disabled = !ready;
+  $('#preview-btn').disabled = !ready;
+}
+
+function getSlicedRows() {
+  let rows = [...dataRows];
+  const start = parseInt($('#start-at').value) || 0;
+  const limit = parseInt($('#limit').value) || 0;
+  if(start > 0) rows = rows.slice(start);
+  if(limit > 0) rows = rows.slice(0, limit);
+  return rows;
+}
+
+// Preview
+$('#preview-btn').onclick = async () => {
+  const rows = getSlicedRows().slice(0, 5);
+  const res = await fetch('/api/dry-run', {
+    method: 'POST', headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({curl: $('#curl-input').value, rows})
+  });
+  const data = await res.json();
+  $('#preview-content').innerHTML = data.previews.map((p, i) => `
+    <div style="margin-bottom:20px; padding:15px; background:var(--surface2); border-radius:8px">
+      <div style="color:var(--accent); font-weight:bold; margin-bottom:10px">#${i+1} ${p.method} ${p.url}</div>
+      <div class="section-label">Headers</div>
+      <pre>${JSON.stringify(p.headers, null, 2)}</pre>
+      ${p.body ? `<div class="section-label">Body</div><pre>${p.body}</pre>` : ''}
+    </div>
+  `).join('');
+  $('#modal').style.display = 'flex';
+};
+
+// Run
+$('#run-btn').onclick = async () => {
+  const sliced = getSlicedRows();
+  if(!confirm(`Run ${sliced.length} requests?`)) return;
+  
+  const res = await fetch('/api/run', {
+    method: 'POST', headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({
+      curl: $('#curl-input').value, 
+      rows: sliced, 
+      delay: parseInt($('#delay').value),
+      timeout: parseInt($('#timeout').value)
+    })
+  });
+  const {run_id} = await res.json();
+  currentRunId = run_id;
+  
+  $('#results-step').classList.remove('hidden');
+  $('#abort-btn').classList.remove('hidden');
+  $('#results-list').innerHTML = '';
+  
+  const poll = setInterval(async () => {
+    const r = await fetch(`/api/run/${run_id}`);
+    const run = await r.json();
+    const pct = (run.results.length / run.total) * 100;
+    $('#progress-bar').style.width = pct + '%';
+    $('#stats').innerText = `Progress: ${run.results.length}/${run.total} | Success: ${run.success_count} | Failed: ${run.fail_count} | Status: ${run.status}`;
+    
+    const currentCount = document.querySelectorAll('.result-item').length;
+    for(let i = currentCount; i < run.results.length; i++) {
+      $('#results-list').prepend(createItem(run.results[i], i));
+    }
+    
+    if (run.status === 'completed' || run.status === 'aborted') {
+      clearInterval(poll);
+      $('#abort-btn').classList.add('hidden');
+    }
+  }, 1000);
+};
+
+$('#abort-btn').onclick = () => fetch(`/api/run/${currentRunId}/abort`, {method:'POST'});
+
+$('#export-btn').onclick = async () => {
+    const r = await fetch(`/api/run/${currentRunId}`);
+    const data = await r.json();
+    const blob = new Blob([JSON.stringify(data.results, null, 2)], {type:'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = `run_${currentRunId}.json`; a.click();
+};
+
+function createItem(res, idx) {
+  const div = document.createElement('div');
+  div.className = 'result-item';
+  const status = res.error ? 'ERR' : (res.status || '???');
+  const statusClass = res.error ? 'err' : (res.status < 300 ? 's2xx' : (res.status < 500 ? 's4xx' : 's5xx'));
+  const body = typeof res.body === 'object' ? JSON.stringify(res.body, null, 2) : (res.body || '');
+
+  div.innerHTML = `
+    <div class="result-header" onclick="this.parentElement.classList.toggle('open')">
+      <span class="chevron">▶</span>
+      <span style="color:var(--text2); min-width:30px">#${idx+1}</span>
+      <span class="result-status ${statusClass}">${status}</span>
+      <span style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-family:var(--mono)">${res.request.url}</span>
+      <span style="font-size:11px; color:var(--text2)">${res.time_ms}ms</span>
+    </div>
+    <div class="result-body">
+      <div class="section-label">Request Info</div>
+      <pre>${res.request.method} ${res.request.url}\n\nHeaders:\n${JSON.stringify(res.request.headers, null, 2)}</pre>
+      ${res.request.body ? `<div class="section-label">Request Body</div><pre>${res.request.body}</pre>` : ''}
+      <div class="section-label">Response Content</div>
+      <pre>${res.error || body || 'Empty Response'}</pre>
+    </div>
+  `;
+  return div;
+}
+</script>
+</body>
+</html>
