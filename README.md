@@ -25,8 +25,6 @@ bash setup.sh
 ./start.sh
 ```
 
-Open: http://localhost:5123
-
 App runs at:
 👉 http://localhost:5123
 
