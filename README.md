@@ -19,10 +19,13 @@ Run bulk API requests using a single cURL + CSV/JSON file.
 ## 🛠 Setup
 
 ```bash
+git clone https://github.com/okhardik/api-runner.git
 cd api-runner
 bash setup.sh
 ./start.sh
 ```
+
+Open: http://localhost:5123
 
 App runs at:
 👉 http://localhost:5123
