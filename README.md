@@ -60,6 +60,19 @@ xyz456,200
 
 ---
 
+## 🔐 Privacy, Control & Cost Efficiency
+
+API Runner is built to run fully **locally**, giving you complete control over your API requests and data.
+
+- Keep sensitive API keys on your machine  
+- No third-party data sharing  
+- No login or tracking  
+- Useful alternative to paid tools for bulk API execution  
+
+> 💡 Ideal if you want a lightweight, private, and cost-effective workflow.
+
+---
+
 ## 📸 Screenshots
 
 ### 🧠 Smart cURL Parsing
