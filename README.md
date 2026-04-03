@@ -65,14 +65,12 @@ xyz456,200
 ### 🧠 Smart cURL Parsing
 Paste your cURL and the tool automatically detects method, headers, and variables.
 
-![Home](./screenshots/home.png)
+![cURL + Variables](./screenshots/data-curl.png)
 
 ---
 
 ### 📊 Upload Data & Preview
 Upload CSV/JSON and instantly see parsed data mapped to variables.
-
-![cURL + Variables](./screenshots/data-curl.png)
 
 ![Data Table](./screenshots/data-file.png)
 
