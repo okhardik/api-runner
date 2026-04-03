@@ -60,6 +60,29 @@ xyz456,200
 
 ---
 
+## 📸 Screenshots
+
+### 🧠 Smart cURL Parsing
+Paste your cURL and the tool automatically detects method, headers, and variables.
+
+![Home](./screenshots/home.png)
+
+---
+
+### 📊 Upload Data & Preview
+Upload CSV/JSON and instantly see parsed data mapped to variables.
+
+![cURL + Variables](./screenshots/data-curl.png)
+
+![Data Table](./screenshots/data-file.png)
+
+---
+
+### 🚀 Execution Results (Detailed)
+View full request, headers, response, and errors in an expandable format.
+
+![Results](./screenshots/results.png)
+
 ## ⚠️ Notes
 
 - Avoid running against production without safeguards
