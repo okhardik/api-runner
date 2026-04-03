@@ -94,6 +94,8 @@ View full request, headers, response, and errors in an expandable format.
 
 ![Results](./screenshots/results.png)
 
+---
+
 ## ⚠️ Notes
 
 - Avoid running against production without safeguards
